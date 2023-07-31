@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<mapper namespace="G">
+	
+	<!-- 세희님이 만드신 디비 -->
+
+	<select id="getGCnt" resultType="Integer" parameterType="hashmap">
+		SELECT COUNT(*) AS CNT
+		FROM GALLERY G INNER JOIN MEM M ON G.MEM_NO = M.MEM_NO
+		AND M.DEL = 1
+		WHERE G.DEL_DT IS NULL
+	</select>
+	
+	<select id="getGList" resultType="hashmap" parameterType="hashmap">
+		SELECT G.NO, G.PIC, G.TITLE, G.DESCRIPT, G.HIT, G.DT
+		FROM (
+		SELECT G.NO, G.PIC, G.TITLE, G.DESCRIPT, G.HIT, 
+		CASE WHEN TO_CHAR(G.REG_DT,'YY.MM.DD') = TO_CHAR(SYSDATE, 'YY.MM.DD')
+		        THEN TO_CHAR(G.REG_DT, 'HH24:MI')
+		        ELSE TO_CHAR(G.REG_DT, 'YY.MM.DD')
+		        END AS DT, 
+                 ROW_NUMBER() OVER(ORDER BY G.NO DESC) AS RNUM
+				FROM GALLERY G INNER JOIN MEM M ON G.MEM_NO = M.MEM_NO
+                AND M.DEL = 1
+				WHERE G.DEL_DT IS NULL ) G
+                WHERE G.RNUM BETWEEN #{start} AND #{end}
+	</select>
+	
+	<insert id="insertG" parameterType="hashmap">
+		INSERT INTO GALLERY(NO, TITLE, MEM_NO, PIC, DESCRIPT)
+		VALUES (GALLERY_SEQ.NEXTVAL, #{title} , #{memNo}, #{pic}, #{descript})
+	</insert>
+	 
+	<select id="getG" parameterType="hashmap"  resultType="hashmap">
+		SELECT G.NO, G.TITLE, G.MEM_NO, G.PIC, G.HIT, G.DESCRIPT,
+	    TO_CHAR(G.REG_DT, 'YYYY-MM-DD') AS DT
+		FROM GALLERY G INNER JOIN MEM M ON G.MEM_NO = M.MEM_NO
+		AND M.DEL = 1
+		WHERE G.DEL_DT IS NULL
+		AND G.NO = #{no}
+	</select>
+	
+	<update id="updateGHit" parameterType="hashmap">
+		UPDATE GALLERY SET HIT = HIT + 1
+		WHERE NO = #{no}
+	</update>
+	
+	<update id="deleteG"  parameterType="hashmap">
+		UPDATE GALLERY SET DEL_DT = TO_CHAR(SYSDATE, 'YY.MM.DD')
+		WHERE NO = #{no}
+	</update>
+	
+	<update id="updateG"  parameterType="hashmap">		
+		UPDATE GALLERY SET TITLE = #{title},
+		PIC = #{pic},
+		DESCRIPT = #{descript}
+		WHERE NO = #{no}
+	</update>
+</mapper>

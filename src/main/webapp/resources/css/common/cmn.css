@@ -1,0 +1,235 @@
+@CHARSET "UTF-8";
+html, body {
+	margin: 0;
+	font-size: 0pt;
+	height: 100%;
+	font-family: 고딕;
+	min-width: 1400px;
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+
+/* Main Color */
+.cmn_btn, .cmn_btn_ml, .cmn_btn_mr, .cmn_btn_mb, .page_btn_on, .popup_title {
+	background-color: #70adf9;
+	color: #FFFFFF;
+}
+/* Main Color on active */
+.cmn_btn:active, .cmn_btn_ml:active, .cmn_btn_mr:active, .cmn_btn_mb:active, .page_btn_on:active {
+	background-color: #8fbef9;
+}
+
+/* headline */
+.headline {
+    display: list-item;
+    height: 30px;
+    line-height: 30px;
+	font-size: 11pt;
+    font-weight: bold;
+    list-style-type: circle;
+    list-style-position: inside;
+    margin: 5px 0px;
+    text-indent: 5px;
+}
+
+/* Common */
+.cmn_title {
+	height: 42px;
+	text-indent: 10px;
+	font-size: 18pt;
+	font-weight: bold;
+	margin: 10px 0px;
+	border-bottom: 2px solid #444;
+}
+
+.cmn_btn, .cmn_btn_ml, .cmn_btn_mr, .cmn_btn_mb, .page_btn, .page_btn_on {
+	/* 마우스 드래그 금지 */
+	-ms-user-select: none;
+	-moz-user-select: -moz-none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	user-select:none;
+}
+
+.cmn_btn, .cmn_btn_ml, .cmn_btn_mr, .cmn_btn_mb {
+	display: inline-block;
+	vertical-align: top;
+	padding: 0px 10px;
+	min-width: 30px;
+	height: 30px;
+	line-height: 30px;
+	font-size: 10pt;
+	font-weight: bold;
+	text-align: center;
+	border-radius: 2px;
+	cursor: pointer;
+	text-indent: 0px;
+}
+
+.cmn_btn_ml {
+	margin-left: 10px;
+}
+
+.cmn_btn_mr {
+	margin-right: 10px;
+}
+
+.cmn_btn_mb {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.float_right_btn {
+	float: right;	
+}
+
+/* Search */
+#searchGbn {
+	min-width: 100px;
+	height: 30px;
+	vertical-align: middle;
+	border: 1px solid #d7d7d7;
+}
+
+#searchText {
+	width: 161px;
+	height: 28px;
+	padding: 0px 2px;
+	text-indent: 5px;
+	vertical-align: middle;
+	border: 1px solid #d7d7d7;
+	outline-color: #70adf9;
+}
+
+/* Board */
+.board_table {
+	border-collapse: collapse;
+	width: 100%;
+	margin: 15px 0px;
+}
+
+.board_table thead tr {
+	border-top: 2px solid #222222;
+	border-bottom: 1px solid #d7d7d7;
+	height: 40px;
+	font-size: 11pt;
+}
+
+.board_table tbody tr {
+	border-bottom: 1px solid #d7d7d7;
+	height: 40px;
+	text-align: center;
+	color: #7b7b7b;
+	font-size: 10.5pt;
+}
+
+.board_cont_left {
+	text-align: left;
+}
+
+.board_table .board_table_hover {
+	color: #222222;
+	font-weight: bold;
+	cursor: pointer;
+}
+
+.board_table .board_table_hover:hover {
+	color: #4B94F2;
+	text-decoration: underline;
+}
+
+.board_bottom {
+	height: 30px;
+	position: relative;
+	text-align: right;
+}
+
+/* detail board */
+.board_detail_table {
+	border-collapse: collapse;
+	width: 100%;
+	margin: 15px 0px;
+	border-top: 2px solid #222222;
+}
+
+.board_detail_table tbody tr {
+	border-bottom: 1px solid #d7d7d7;
+	height: 40px;
+	text-align: center;
+	color: #7b7b7b;
+	font-size: 10.5pt;
+}
+
+.board_detail_table tbody tr input[type='text'], .board_detail_table tbody tr input[type='password'] {
+	width: calc(100% - 4px);
+	height: 28px;
+	padding: 0px 2px;
+	text-indent: 5px;
+	vertical-align: middle;
+	border: 1px solid #d7d7d7;
+	outline-color: #70adf9;
+}
+
+/* paging */
+.paging_area {
+	display: inline-block;
+	min-width: 300px;
+	text-align:center;
+	height: 30px;
+	position: absolute;
+	left: calc(50% - 150px);
+}
+
+.page_btn {
+	background-color: #f2f2f2;
+	color: #7b7b7b;
+}
+
+.page_btn, .page_btn_on {
+	display: inline-block;
+	vertical-align: top;
+	width: 30px;
+	height: 30px;
+	line-height: 30px;
+	font-size: 11pt;
+	font-weight: bold;
+	margin: 0px 2px;
+	border-radius: 2px;
+	cursor: pointer;
+}
+
+.page_btn:hover {
+	background-color: #d7d7d7;
+}
+
+.page_first, .page_prev, .page_next, .page_last {
+	font-size: 0pt;
+}
+
+.page_first {
+	background-image: url('../../images/cmn/first_icon.png');
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 15px;
+}
+
+.page_prev {
+	background-image: url('../../images/cmn/prev_icon.png');
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 15px;
+}
+
+.page_next {
+	background-image: url('../../images/cmn/next_icon.png');
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 15px;
+}
+
+.page_last {
+	background-image: url('../../images/cmn/last_icon.png');
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: 15px;
+}

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="sampleBoard">
+	<insert id="insertBoard" parameterType="hashmap">
+		INSERT INTO BOARD(BOARD_NO, TITLE, WRITER, PASS, CONTENTS)
+		VALUES(BOARD_SEQ.NEXTVAL, #{title}, #{writer}, #{pass}, #{contents})
+	</insert>
+	
+	<select id="getBoardCount" parameterType="hashmap" resultType="Integer">
+		SELECT COUNT(*) AS CNT
+		FROM (SELECT ROW_NUMBER() OVER(ORDER BY BOARD_NO DESC) AS RNUM,
+		             BOARD_NO, TITLE, WRITER, TO_CHAR(WRITE_DATE, 'YYYY/MM/DD') AS WRITE_DATE, HIT_CNT
+		      FROM BOARD
+		      WHERE DEL_YN = 1
+		      <if test="searchText != null and searchText != ''">
+		      	<choose>
+		      		<when test="searchGbn == 0">
+			      		AND TITLE LIKE '%' || #{searchText} || '%'
+		      		</when>
+		      		<when test="searchGbn == 1">
+			      		AND WRITER LIKE '%' || #{searchText} || '%'
+		      		</when>
+		      		<when test="searchGbn == 2">
+			      		AND CONTENTS LIKE '%' || #{searchText} || '%'
+		      		</when>
+		      	</choose>
+		      </if>
+		      ) B
+	</select>
+	
+	<select id="getBoardList" parameterType="hashmap" resultType="hashmap">
+		SELECT BOARD_NO, TITLE, WRITER, B.WRITE_DATE, B.HIT_CNT
+		FROM (SELECT ROW_NUMBER() OVER(ORDER BY BOARD_NO DESC) AS RNUM,
+		             BOARD_NO, TITLE, WRITER, TO_CHAR(WRITE_DATE, 'YYYY/MM/DD') AS WRITE_DATE, HIT_CNT
+		      FROM BOARD
+		      WHERE DEL_YN = 1
+		      <if test="searchText != null and searchText != ''">
+		      	<choose>
+		      		<when test="searchGbn == 0">
+			      		AND TITLE LIKE '%' || #{searchText} || '%'
+		      		</when>
+		      		<when test="searchGbn == 1">
+			      		AND WRITER LIKE '%' || #{searchText} || '%'
+		      		</when>
+		      		<when test="searchGbn == 2">
+			      		AND CONTENTS LIKE '%' || #{searchText} || '%'
+		      		</when>
+		      	</choose>
+		      </if>
+		      ) B
+		WHERE B.RNUM BETWEEN #{startCount} AND #{endCount}
+	</select>
+	
+	<select id="getBoardDetail" parameterType="String" resultType="hashmap">
+		SELECT BOARD_NO, TITLE, WRITER, CONTENTS, TO_CHAR(WRITE_DATE, 'YYYY/MM/DD') AS WRITE_DATE, HIT_CNT
+	    FROM BOARD
+	    WHERE DEL_YN = 1
+	    AND BOARD_NO = #{boardNo}
+	</select>
+	
+	<update id="updateHitCnt" parameterType="String">
+		UPDATE BOARD
+		SET HIT_CNT = HIT_CNT + 1
+		WHERE BOARD_NO = #{boardNo}
+	</update>
+	
+	<select id="checkPass" parameterType="hashmap" resultType="String">
+		SELECT CASE WHEN COUNT(*) = 1
+		            THEN 'TRUE'
+		            ELSE 'FALSE'
+		       END AS RESULT
+		FROM BOARD
+		WHERE BOARD_NO = #{boardNo}
+		AND PASS = #{pass}
+	</select>
+	
+	<update id="updateBoard" parameterType="hashmap">
+		UPDATE BOARD
+		SET TITLE = #{title}, CONTENTS = #{contents}
+		WHERE BOARD_NO = #{boardNo}
+	</update>
+	
+	<delete id="deleteBoard" parameterType="hashmap">
+		DELETE FROM BOARD
+		WHERE BOARD_NO = #{boardNo}
+	</delete>
+</mapper>

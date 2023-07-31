@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace : 클래스와 동일. 이 파일의 대표명 -->
+<mapper namespace="test">
+	<!-- select : 조회 id : 구분자. 메소드명과 동일 
+	     resultType : 조회 결과 중 한줄에 대한 자료 형태를 지정. -->
+	<!-- ⭐✨ 마지막 세미콜런은 빼야함!! -->
+	<!-- AS가 있으면 MAP이 더 잘 찾을 수 있음. -->
+
+	<select id="getSellList" resultType="hashmap" parameterType="hashmap">
+	SELECT S.SELL_NO, S.ITEM_NAME, S.COUNT, S.SELL_DT
+		FROM(
+		select sell_no, item_name,
+				count, TO_CHAR(sell_dt, 'YYYY-MM-DD') AS SELL_DT,
+		        ROW_NUMBER() OVER(ORDER BY SELL_DT DESC, SELL_NO DESC) AS RNK
+		from sell
+		where 1=1 <!-- 고정적인 조건, 밑에 if문은 상시 조건(조건이 안맞으면 실행 안함.) -->
+		
+		<!-- Dynamic Query : 동적 쿼리 -->
+		<if test="searchTxt != null and searchTxt != ''"> <!-- el태그 필요없음 -->
+			<!-- 검색어가 있다면~ -->
+			<choose>
+				<when test="searchGbn == 0">
+					<!-- 품목 -->
+					and ITEM_NAME LIKE '%' || #{searchTxt} || '%'
+				</when>
+				
+				<when test="searchGbn == 1">
+					<!--  수량 -->
+					and COUNT = #{searchTxt}
+				</when>
+			</choose>
+		</if>
+		)S
+		WHERE S.RNK BETWEEN #{start} AND #{end}
+	</select>
+
+	<!-- parameterType : 실행 시 받는 값
+		 #{키} : 해당 위치에 문자열로 키에 해당하는 값을 넣어준다.
+		 ex) no에 3이 들어있는 경우(sellList.jsp에 hidden)
+		 WHERE sell_no = #{no}
+		 => where sell_no ='3'
+	 -->
+	 <!-- 한 행만 조회 -->
+	<select id="getSell" resultType="hashmap" parameterType="hashmap">
+		select sell_no, item_name, count, TO_CHAR(sell_dt, 'YYYY-MM-DD') AS SELL_DT
+		from sell
+		where sell_no = #{no}
+	</select>
+	
+	<!-- sell 테이블 등록 -->
+	<insert id="insertSell" parameterType="hashmap">
+		INSERT INTO SELL(SELL_NO, ITEM_NAME, COUNT, SELL_DT)
+		VALUES(SELL_SEQ.NEXTVAL, #{itemName}, #{count}, #{sellDt})
+	</insert>
+	
+	<!-- sell 테이블 삭제 -->
+	<delete id="deleteSell" parameterType="hashmap">
+		delete from sell
+		where sell_no=#{no}
+	</delete>
+	
+	<!-- sell 테이블 수정 -->
+	<update id="updateSell" parameterType="hashmap">
+		update sell set item_name = #{itemName},
+                count= #{count},
+                sell_dt = #{sellDt}
+		where sell_no = #{no}
+	</update>
+	
+	<!-- 페이징과  검색어때문에 사용-->
+	<select id="getSellCnt" parameterType="hashmap" resultType="Integer">
+		select count(*) as cnt
+		from sell
+		where 1=1 <!-- 고정적인 조건, 밑에 if문은 상시 조건(조건이 안맞으면 실행 안함.) -->
+		
+		<!-- Dynamic Query : 동적 쿼리 -->
+		<if test="searchTxt != null and searchTxt != ''"> <!-- el태그 필요없음 -->
+			<!-- 검색어가 있다면~ -->
+			<choose>
+				<when test="searchGbn == 0">
+					<!-- 품목 -->
+					and ITEM_NAME LIKE '%' || #{searchTxt} || '%'
+				</when>
+				
+				<when test="searchGbn == 1">
+					<!--  수량 -->
+					and COUNT = #{searchTxt}
+				</when>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- ============================ manager 테이블============================ -->
+	<select id="getManagerList" resultType="hashmap" parameterType="hashmap">
+		SELECT M.EMP_NO, M.NAME, M.DEPT
+		FROM(
+		select EMP_NO, NAME, DEPT,
+		        ROW_NUMBER() OVER(ORDER BY EMP_NO DESC) AS RNK
+		from manager
+		where 1=1 <!-- 고정적인 조건, 밑에 if문은 상시 조건(조건이 안맞으면 실행 안함.) -->
+		
+		<!-- Dynamic Query : 동적 쿼리 -->
+		<if test="searchTxt != null and searchTxt != ''"> <!-- el태그 필요없음 -->
+			<!-- 검색어가 있다면~ -->
+			<choose>
+				<when test="searchGbn == 0">
+					<!-- 품목 -->
+					and NAME LIKE '%' || #{searchTxt} || '%'
+				</when>
+				
+				<when test="searchGbn == 1">
+					<!--  수량 -->
+					and DEPT = #{searchTxt}
+				</when>
+			</choose>
+		</if>
+		)M
+		WHERE M.RNK BETWEEN #{start} AND #{end}
+	</select>
+	
+	<select id="getManagerCnt" parameterType="hashmap" resultType="Integer">
+		select count(*) as cnt
+		from manager
+		where 1=1 <!-- 고정적인 조건, 밑에 if문은 상시 조건(조건이 안맞으면 실행 안함.) -->
+		
+		<!-- Dynamic Query : 동적 쿼리 -->
+		<if test="searchTxt != null and searchTxt != ''"> <!-- el태그 필요없음 -->
+			<!-- 검색어가 있다면~ -->
+			<choose>
+				<when test="searchGbn == 0">
+					<!-- 품목 -->
+					and NAME LIKE '%' || #{searchTxt} || '%'
+				</when>
+				
+				<when test="searchGbn == 1">
+					<!--  수량 -->
+					and DEPT = #{searchTxt}
+				</when>
+			</choose>
+		</if>
+	</select>
+	
+	<!-- parameterType = hashmap이면 편함, 많이 받아와도 넣어주고 싶은 '키'값만 바꿔주면 됨. -->
+	<select id="getManager" resultType="hashmap" parameterType="hashmap">
+		select emp_no, name, dept
+		from manager
+		where emp_no = #{no}
+	</select>
+	
+	<insert id="insertManager" parameterType="hashmap">
+		INSERT INTO MANAGER(EMP_NO, NAME, DEPT)
+		VALUES(MANAGER_SEQ.NEXTVAL, #{name}, #{dept})
+	</insert>
+	
+	<update id="updateManager"  parameterType="hashmap">
+	   update MANAGER 
+	   			set name = #{name},
+                	dept = #{dept}
+		where emp_no = #{no}
+	</update>
+	
+	<delete id="deleteManager"  parameterType="hashmap">
+		delete from manager
+		where emp_no=#{no}
+	</delete>
+	
+	<!-- divs 테이블 -->
+	<select id="divsList" resultType="hashmap" >
+		SELECT * FROM DIVS
+		ORDER BY DIV_CODE
+	</select>
+	
+	<select id="getDivs" parameterType="hashmap" resultType="hashmap">
+		SELECT *
+		FROM DIVS
+		WHERE DIV_CODE = #{code}
+	</select>
+	
+	<insert id="divsInsert" parameterType="hashmap">
+		INSERT INTO DIVS (DIV_CODE, DIV_NAME)
+			VALUES((SELECT #{code} || LPAD(NVL(MAX(REPLACE(DIV_CODE,#{code},'')),0)+1, 2, 0)
+		FROM DIVS
+		WHERE DIV_CODE LIKE #{code} || '%'),#{codeName})
+	</insert>
+	
+	<update id="divsUpdate" parameterType="hashmap">
+		update DIVS 
+	   			set DIV_NAME = #{codeName}
+		where DIV_CODE = #{code}
+	</update>
+	
+	<delete id="divsDelete" parameterType="hashmap">
+		DELETE FROM DIVS
+		WHERE DIV_CODE = #{code}
+	</delete>
+	
+	<!-- ============================ BOOK 테이블============================ -->
+	<select id="bookList" resultType="hashmap">
+		SELECT BOOK_NO, BOOK_TITLE, BOOK_AUTHOR
+		FROM BOOK
+		ORDER BY BOOK_NO
+	</select>
+	
+	<select id="getbook" resultType="hashmap" parameterType="hashmap">
+		SELECT BOOK_NO, BOOK_TITLE, BOOK_AUTHOR, BOOK_CO, TO_CHAR(BOOK_DT,'YYYY-MM-DD') AS BOOK_DT,
+	    TO_CHAR(REG_DT,'YYYY-MM-DD') AS REG_DT
+		FROM BOOK
+		where BOOK_NO = #{no}
+	</select>
+	
+	<insert id="bookInsert" parameterType="hashmap">
+		INSERT INTO BOOK(BOOK_NO, BOOK_TITLE, BOOK_AUTHOR, BOOK_CO, BOOK_DT, REG_DT)
+		VALUES(BOOK_SEQ.NEXTVAL, #{title}, #{author}, #{co}, #{bookDt} ,sysdate)
+	</insert>
+	
+	<update id="bookUpdate" parameterType="hashmap">
+		update BOOK set BOOK_TITLE = #{title},
+	                BOOK_AUTHOR = #{author},
+	                BOOK_CO  = #{co},
+	                BOOK_DT = #{bookDt},
+	                REG_DT = #{regDt}
+		where BOOK_NO = #{no}
+	</update>
+	
+	<delete id="bookDelete" parameterType="hashmap">
+		DELETE FROM BOOK
+		WHERE BOOK_NO = #{no}
+	</delete>
+</mapper>

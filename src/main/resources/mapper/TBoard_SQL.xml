@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="T">
+	<!-- 왜 DELETE가 없나요?? 77번줄 UPDATE가 삭제이다.(DEL을 0으로 바꿔주면 안불러옴) -->
+
+	<select id="getTBoardCnt" parameterType="hashmap" resultType="Integer">
+		<!-- 데이터 개수(페이징과 연결)와 검색어(페이징과 연결) 때문에 -->
+		<!-- 카테고리 번호 - CATE_NO -->
+		SELECT COUNT(*) AS CNT
+		FROM TBOARD T INNER JOIN MEM M
+		            ON T.MEM_NO = M.MEM_NO
+		            AND M.DEL = 1
+		WHERE T.DEL = 1
+		AND T.CATE_NO = #{cateNo}
+		<if test="searchTxt != null and searchTxt != ''">
+			<choose>
+				<when test="searchGbn eq 0">
+					<!-- 제목 -->
+					AND T.TITLE LIKE '%' || #{searchTxt} || '%'
+				</when>
+				<when test="searchGbn eq 1">
+					<!-- 작성자 -->
+					AND M.MEM_NM LIKE '%' || #{searchTxt} || '%'
+				</when>
+			</choose>
+		</if>
+	</select>
+	
+	<select id="getTBoardList" parameterType="hashmap" resultType="hashmap">
+		SELECT T.NO, T.TITLE, T.MEM_NM, T.HIT, T.DT,  T.ATT
+		FROM(SELECT T.NO,T.TITLE, M.MEM_NM, T.HIT,
+		            CASE WHEN TO_CHAR(T.DT, 'YY.MM.DD') = TO_CHAR(SYSDATE, 'YY.MM.DD')
+		                    THEN TO_CHAR(T.DT , 'HH24:MI')
+		                    ELSE  TO_CHAR(T.DT , 'YY.MM.DD')
+		                END AS DT,
+		                ATT,
+		                ROW_NUMBER() OVER(ORDER BY T.NO DESC) AS RNUM
+			FROM TBOARD T INNER JOIN MEM M
+		                ON T.MEM_NO = M.MEM_NO
+		                AND M.DEL = 1
+		 	WHERE T.DEL = 1
+		 	AND T.CATE_NO = #{cateNo}
+		 	<if test="searchTxt != null and searchTxt != ''">
+				<choose>
+					<when test="searchGbn eq 0">
+						AND T.TITLE LIKE '%' || #{searchTxt} || '%'
+					</when>
+					<when test="searchGbn eq 1">
+						AND M.MEM_NM LIKE '%' || #{searchTxt} || '%'
+					</when>	
+				</choose>
+			</if>
+			)T
+		WHERE T.RNUM BETWEEN #{start} AND #{end}
+	</select>
+	
+	<update id="updateTboardHit" parameterType="hashmap">
+		<!-- 상세보기 전에 조회수 증가 되야함. -->
+		UPDATE TBOARD 
+		SET HIT = HIT + 1
+		WHERE NO = #{no}
+	</update>
+	
+	<select id="getT" parameterType="hashmap" resultType="hashmap">
+		<!-- 상세보기  -->
+		SELECT T.NO, T.TITLE, M.MEM_NO, M.MEM_NM, T.CON, T.HIT,
+		    TO_CHAR(T.DT , 'YYYY-MM-DD')AS DT, T.ATT
+		FROM TBOARD T INNER JOIN MEM M
+		            ON T.MEM_NO = M.MEM_NO
+		            AND M.DEL = 1
+		WHERE T.DEL = 1
+		AND T.NO = #{no}
+	</select>
+	
+	<insert id="tBoardInsert" parameterType="hashmap">
+		<!-- 등록, 여러 파일은 올릴는 쿼리가 아니다.(하나만 가능한 쿼리) -->
+		INSERT INTO TBOARD(NO, TITLE, MEM_NO, CON, ATT , CATE_NO)
+		VALUES(TBOARD_SEQ.NEXTVAL, #{title}, #{memNo}, #{con}, #{att}, #{cateNo})
+	</insert>
+	
+	<update id="tBoardDelete" parameterType="hashmap" >
+		<!-- 삭제 -->
+		UPDATE TBOARD 
+		SET DEL = 0
+		WHERE NO = #{no}
+	</update>
+	
+	<update id="tBoardUpdate" parameterType="hashmap">
+		<!-- 수정, 여러 파일은 올릴는 쿼리가 아니다.(하나만 가능한 쿼리) -->
+		UPDATE TBOARD SET TITLE = #{title},
+                CON = #{con},
+                ATT = #{att}
+		WHERE NO = #{no}
+	</update>
+	
+</mapper>

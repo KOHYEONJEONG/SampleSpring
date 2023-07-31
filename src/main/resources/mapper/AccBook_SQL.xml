@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="acc">
+
+<!-- 총 count -->
+<select id="getAccCnt" resultType="hashmap"  parameterType="hashmap">
+	SELECT COUNT(*) AS CNT
+	FROM ACCBOOK 
+	WHERE DEL = 1
+</select>
+
+<!-- 전체조회 -->
+<select id="getAccList" resultType="hashmap"  parameterType="hashmap">
+	SELECT A.NO, A.PRICE, A.ACC_TYPE, A.INFO, A.DT
+	FROM(SELECT NO, PRICE, ACC_TYPE, INFO,
+				 CASE WHEN TO_CHAR(DT, 'YY.MM.DD') = TO_CHAR(SYSDATE, 'YY.MM.DD')
+				      THEN TO_CHAR(DT , 'HH24:MI')
+				      ELSE  TO_CHAR(DT , 'YY.MM.DD')
+				      END AS DT,
+				 ROW_NUMBER() OVER(ORDER BY NO DESC) AS RNUM
+		FROM ACCBOOK 
+		WHERE DEL = 1
+	)A
+	WHERE A.RNUM BETWEEN #{start} AND #{end}
+</select>
+
+<!-- 지출 -->
+<select id="getOutlay" resultType="hashmap"  parameterType="hashmap">
+	SELECT sum(price)
+	FROM ACCBOOK 
+	WHERE ACC_TYPE = 0
+</select>
+
+<!-- 수입 -->
+<select id="getIncome" resultType="hashmap"  parameterType="hashmap">
+	SELECT sum(price)
+	FROM ACCBOOK 
+	WHERE ACC_TYPE = 1
+</select>
+
+<insert id="insertAcc" parameterType="hashmap">
+	INSERT INTO ACCBOOK(NO, PRICE, ACC_TYPE, INFO, DT)
+	VALUES(ACCBOOK_SEQ.NEXTVAL, #{price}, #{accTypeGbn}, #{info}, #{dt})
+</insert>
+
+<update id="updateAcc" parameterType="hashmap">
+	UPDATE ACCBOOK SET
+		PRICE = #{price},
+		ACC_TYPE = #{accTypeGbn},
+		INFO = #{info},
+		DT = #{dt}
+	WHERE NO = #{no}
+</update>
+
+<delete id="deleteAcc" parameterType="hashmap">
+	UPDATE ACCBOOK SET
+		DEL = 0
+	WHERE NO = #{no}
+</delete>
+</mapper>

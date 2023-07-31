@@ -1,0 +1,57 @@
+@CHARSET "UTF-8";
+.calendar_wrap {
+	display: inline-block;
+	text-align: center;
+	width: 350px;
+	border: 1px solid #999999;
+	background-color: #EEEEFF;
+}
+.calendar_table {
+	width: 350px;
+	text-align: center;
+	border-collapse: collapse;
+	border-spacing:0px;
+	font-family: '굴림', '돋움';
+	font-size: 11pt;
+}
+.calendar_table tbody tr .dateArea {
+	cursor: pointer;
+}
+.day_info {
+	display: inline-block;
+	height: 25px;
+	vertical-align: baseline;
+	line-height: 25px;
+}
+.calendar_table thead tr td span {
+	display: inline-block;
+	width: 30px;
+	height: 25px;
+	vertical-align: top;
+	line-height: 25px;
+	cursor: pointer;
+}
+.calendar_table thead tr td span div {
+	display: table;
+	width: 30px;
+	height: 25px;
+	vertical-align: middle;
+	line-height: 25px;
+	cursor: pointer;
+}
+.calendar_table thead tr td span div div {
+	display: table-cell;
+	vertical-align: middle;
+	line-height: 25px;
+	cursor: pointer;
+}
+.calendar_table tr {
+	border-bottom: 1px solid #999999;
+	height: 30px;
+}
+.calendar_table tr.day {
+	font-weight: bold;
+}
+.calendar_red {
+	color:red;
+}

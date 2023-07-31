@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ob">
+	
+	<insert id="InsertOb" parameterType="hashmap">
+		INSERT INTO OB(NO, MEM_NO, CON)
+		VALUES(OB_SEQ.NEXTVAL, #{memNo}, #{con})
+	</insert>
+	
+	<update id="UpdateOb" parameterType="hashmap">
+		UPDATE OB SET CON = #{con}
+		WHERE NO = #{no}
+	</update>
+	
+	<delete id="DeleteOb" parameterType="hashmap">
+		DELETE FROM OB
+		WHERE NO = #{no}
+	</delete>
+	
+	<select id="getObCnt" parameterType="hashmap" resultType="Integer"> 
+		SELECT COUNT(*) AS CNT
+		FROM OB O INNER JOIN MEM M
+		            ON O.MEM_NO = M.MEM_NO
+		            AND M.DEL = 1 
+		WHERE O.DEL = 1
+		<if test="searchText != null and searchText != ''">
+			<choose>
+				<when test="searchGbn eq 0">
+					<!--작성자 검색 -->
+					AND M.MEM_NM LIKE '%' || #{searchText} || '%'
+				</when>
+				<when test="searchGbn eq 1">
+					<!--내용 검색 -->
+					AND O.CON LIKE '%' || #{searchText} || '%'
+				</when>
+			</choose>
+		</if>
+	</select>
+	
+	<select id="getObList" parameterType="hashmap" resultType="hashmap">
+		SELECT O.NO, O.MEM_NO, O.MEM_NM, O.CON, O.DT
+		FROM(SELECT O.NO, O.MEM_NO, M.MEM_NM, O.CON,
+		             CASE WHEN TO_CHAR(O.DT, 'YY.MM.DD') = TO_CHAR(SYSDATE, 'YY.MM.DD')
+				                    THEN TO_CHAR(O.DT , 'HH24:MI')
+				                    ELSE  TO_CHAR(O.DT , 'YY.MM.DD')
+				                END AS DT,
+		                        ROW_NUMBER() OVER(ORDER BY O.NO DESC) AS RNUM
+		FROM OB O INNER JOIN MEM M
+		            ON O.mem_no = M.MEM_NO
+		            AND M.DEL = 1
+		WHERE O.DEL = 1
+		<if test="searchText != null and searchText != ''">
+			<choose>
+				<when test="searchGbn eq 0">
+					<!--작성자 검색 -->
+					AND M.MEM_NM LIKE '%' || #{searchText} || '%'
+				</when>
+				<when test="searchGbn eq 1">
+					<!--내용 검색 -->
+					AND O.CON LIKE '%' || #{searchText} || '%'
+				</when>
+			</choose>
+		</if>) O
+		WHERE O.RNUM BETWEEN #{start} AND #{end}
+	</select>
+</mapper>

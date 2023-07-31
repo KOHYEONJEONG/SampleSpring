@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="anboard">
+
+<!-- 세미콜론 들어가면 ORA-00911: invalid character 오류남!!, 지워주자 -->
+	<select id="getBoardList" resultType="hashmap" parameterType="hashmap">
+		
+		SELECT A.NO, A.TITLE, A.WRITER, A.HIT, A.DT
+		FROM(
+		SELECT NO, TITLE, WRITER, HIT, 
+		CASE WHEN TO_CHAR(DT, 'YY.MM.DD') = TO_CHAR(SYSDATE, 'YY.MM.DD')
+		    THEN TO_CHAR(DT, 'HH24:MI')
+		    ELSE TO_CHAR(DT,'YY.MM.DD')
+		END AS DT,
+		ROW_NUMBER() OVER(ORDER BY NO DESC) AS RNUM
+		FROM ANBOARD
+		WHERE DEL = 1
+		<if test="searchTxt != null and searchTxt != ''">
+				<choose>
+					<when test="searchGbn == 0">
+						and TITLE LIKE '%' || #{searchTxt} || '%'
+					</when>
+					
+					<when test="searchGbn == 1">
+						and WRITER LIKE '%' || #{searchTxt} || '%'
+					</when>
+					
+					<when test="searchGbn == 2">
+						and DT LIKE '%' || #{searchTxt} || '%'
+					</when>
+				</choose>
+			</if>
+		) A
+		WHERE A.RNUM BETWEEN #{start} AND #{end}
+	</select>
+	
+	<select id="getAnBoard" parameterType="hashmap" resultType="hashmap">
+		SELECT NO, TITLE, WRITER, HIT, CON,
+		CASE WHEN TO_CHAR(DT, 'YY.MM.DD') = TO_CHAR(SYSDATE, 'YY.MM.DD')
+		    THEN TO_CHAR(DT, 'HH24:MI')
+		    ELSE TO_CHAR(DT,'YY.MM.DD')
+		END AS DT
+		FROM ANBOARD
+		WHERE DEL = 1
+		AND NO = #{no}
+	</select>
+	
+	<!-- 페이징과 검색어때문에 사용 -->
+	<select id="getAnBoardCnt" parameterType="hashmap" resultType="Integer">
+		select count(*) as cnt
+		from anboard
+		where 1=1
+		<if test="searchTxt != null and searchTxt != ''">
+				<choose>
+					<when test="searchGbn == 0">
+						and TITLE LIKE '%' || #{searchTxt} || '%'
+					</when>
+					
+					<when test="searchGbn == 1">
+						and WRITER LIKE '%' || #{searchTxt} || '%'
+					</when>
+					
+					<when test="searchGbn == 2">
+						and DT LIKE '%' || #{searchTxt} || '%'
+					</when>
+				</choose>
+			</if>
+	</select>
+	
+	<insert id="insertBoard" parameterType="hashmap">
+		INSERT INTO ANBOARD(NO,TITLE, WRITER, CON, DT)
+		VALUES(ANBOARD_SEQ.NEXTVAL, #{title}, #{writer},#{con},sysdate)
+	</insert>
+	
+	<!-- 실제로 삭제가 아닌 그냥 목록에 안보여줄 용도로만 하려고 update쓴거다!! -->
+	<update id="delUpdateBoard" parameterType="hashmap">
+		UPDATE ANBOARD 
+		SET DEL = 0 
+		WHERE NO = #{no}
+	</update>
+	
+	<!-- anboardUpdate.jsp 페이지에서 수정하고 넘어온 name속성들로 수정하기 -->
+	<update id="updateAnBoard" parameterType="hashmap">
+		UPDATE ANBOARD 
+		SET TITLE = #{title},
+			WRITER = #{writer},
+			CON = #{con}
+		WHERE NO = #{no}	            
+	</update>
+	
+	<!-- 조회수 증가 -->
+	<update id="updateHit" parameterType="hashmap">
+		UPDATE ANBOARD SET HIT = HIT +1 <!-- DB는 += 없음! -->
+		WHERE NO = #{no}
+	</update>
+
+</mapper>

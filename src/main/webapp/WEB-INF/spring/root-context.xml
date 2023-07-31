@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+	
+	<!-- Root Context: (다른 모든 웹 구성요소에 표시되는 공유 리소스를 정의)defines shared resources visible to all other web components -->
+	<context:property-placeholder location="/WEB-INF/spring/jdbc.properties"/>
+	
+	<!-- dataSource : 접속설정객체 -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driverClassName}" />
+        <property name="url" value="${jdbc.url}" />
+        <property name="username" value="${jdbc.username}" />
+        <property name="password" value="${jdbc.password}" />
+    </bean>
+    
+    <!-- log설정 : dataSource에 로그 지정(선택사항) -->
+    <bean id="dataSourceLog" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+        <constructor-arg ref="dataSource" />
+        <property name="logFormatter">
+            <bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
+                <property name="loggingType" value="MULTI_LINE" />
+                <property name="sqlPrefix" value="SQL : "/>
+            </bean>
+        </property>
+    </bean>
+    
+    <!-- sessionFactory : DB접속 객체 -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+    	<!-- Mybatis설정 -->
+    	<property name="configLocation" value="classpath:mybatis-config.xml" />
+    	<!-- DB접속 설정 -->
+        <!-- <property name="dataSource" ref="dataSource" /> -->
+        <property name="dataSource" ref="dataSourceLog" />
+        <!-- mapper : 쿼리가 보관된 파일 -->
+        <property name="mapperLocations" value="classpath*:mapper/**/*.xml" />
+    </bean>
+    
+    <!-- sqlSession : SessionFactory 사용 객체 -->
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+        <constructor-arg ref="sqlSessionFactory" />
+    </bean>
+    
+    <!-- Transaction -->
+    <bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<constructor-arg ref="dataSource" />
+	</bean>
+
+	<!-- 트랜잭션 db :트랜잭션 어노테이션이 돌아간다.-->
+	<tx:annotation-driven />
+</beans>

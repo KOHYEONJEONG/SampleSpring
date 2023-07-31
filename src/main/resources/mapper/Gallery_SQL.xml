@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gallery">
+
+	<select id="getGalleyList" resultType="hashmap" parameterType="hashmap">
+		SELECT G.NO,G.MEM_NO, G.MEM_NM,G.PIC, G.TITLE,G.DESCRIPT, G.HIT, G.DT
+		FROM(SELECT  G.NO,G.MEM_NO, G.TITLE, M.MEM_NM, G.HIT, G.DESCRIPT,G.PIC,
+		    CASE WHEN TO_CHAR(G.REG_DT, 'YY.MM.DD') = TO_CHAR(SYSDATE, 'YY.MM.DD')
+		         THEN TO_CHAR(G.REG_DT, 'HH24:MI')
+		         ELSE TO_CHAR(G.REG_DT, 'YY.MM.DD')
+		         END AS DT,
+		         ROW_NUMBER() OVER(ORDER BY G.NO DESC) AS RNUM
+		    FROM GALLERY G INNER JOIN MEM M
+		            ON G.MEM_NO = M.MEM_NO
+		            AND M.DEL = 1
+		    WHERE G.DEL_DT IS NULL
+		    
+		   	<if test="searchTxt != null and searchTxt != ''">
+				<choose>
+					<when test="searchGbn eq 0">
+						AND G.TITLE LIKE '%' || #{searchTxt} || '%'
+					</when>
+					<when test="searchGbn eq 1">
+						AND M.MEM_NM LIKE '%' || #{searchTxt} || '%'
+					</when>	
+				</choose>
+			</if>
+		)G
+		WHERE G.RNUM BETWEEN #{start} AND #{end}
+	</select>
+	
+	<select id="getGalleyCnt" resultType="Integer" parameterType="hashmap">
+		SELECT COUNT(*) AS CNT
+		FROM GALLERY G INNER JOIN MEM M
+		                ON G.MEM_NO = M.MEM_NO
+		                AND M.DEL = 1
+		WHERE G.DEL_DT IS NULL
+		<if test="searchTxt != null and searchTxt != ''">
+			<choose>
+				<when test="searchGbn eq 0">
+					AND G.TITLE LIKE '%' || #{searchTxt} || '%'
+				</when>
+				<when test="searchGbn eq 1">
+					AND M.MEM_NM LIKE '%' || #{searchTxt} || '%'
+				</when>
+			</choose>
+		</if>
+	</select>
+	
+	<select id="getG" resultType="hashmap" parameterType="hashmap">
+		SELECT  G.NO, G.MEM_NO, G.TITLE, M.MEM_NM, G.HIT, G.DESCRIPT, G.PIC,
+			    CASE WHEN TO_CHAR(G.REG_DT, 'YY.MM.DD') = TO_CHAR(SYSDATE, 'YY.MM.DD')
+			         THEN TO_CHAR(G.REG_DT, 'HH24:MI')
+			         ELSE TO_CHAR(G.REG_DT, 'YY.MM.DD')
+			         END AS DT
+	   FROM GALLERY G INNER JOIN MEM M
+		            ON G.MEM_NO = M.MEM_NO
+		            AND M.DEL = 1
+		WHERE G.NO = #{no}
+	</select>
+	
+	
+	<insert id="insertGallery" parameterType="hashmap">
+	   INSERT INTO GALLERY(NO, MEM_NO, PIC,TITLE, DESCRIPT, REG_DT)
+       VALUES (GALLERY_SEQ.NEXTVAL, #{memNo}, #{att}, #{title}, #{descript}, SYSDATE)
+	</insert>
+	
+	
+	<update id="updateGalleryHit" parameterType="hashmap">
+		<!-- 상세보기 전에 조회수 증가 되야함. -->
+		UPDATE GALLERY 
+		SET HIT = HIT + 1
+		WHERE NO = #{no}
+	</update>
+	
+	<update id="updateGallery" parameterType="hashmap">
+		UPDATE GALLERY SET
+			   TITLE = #{title},
+			   PIC = #{pic},
+			   DESCRIPT = #{descript}
+		WHERE NO = #{no}
+		
+	</update>
+	
+	<update id="deleteGallery" parameterType="hashmap">
+		UPDATE GALLERY SET
+			   DEL_DT = sysdate
+		WHERE NO = #{no}
+	</update>
+</mapper>

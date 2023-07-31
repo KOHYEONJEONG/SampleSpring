@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="chat">
+	<insert id="insertChat" parameterType="hashmap">
+		INSERT INTO CHAT(CHATNO, NICK, CONTENTS)
+		VALUES(CHAT_SEQ.NEXTVAL, #{nick}, #{contents})
+	</insert>
+	
+	<select id="getMaxNo" resultType="Integer">
+		SELECT NVL(MAX(CHATNO), 0) AS MAXNO
+		FROM CHAT
+	</select>
+	
+	<select id="getChatList" parameterType="Integer" resultType="hashmap">
+		SELECT CHATNO, NICK, CONTENTS, TO_CHAR(WRITEDATE, 'YYYY-MM-DD HH24:MI:SS') AS WRITEDATE
+		FROM CHAT
+		WHERE CHATNO > #{lastChatNo}
+		ORDER BY CHATNO ASC
+	</select>
+</mapper>

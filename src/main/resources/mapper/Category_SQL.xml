@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cate">
+
+	<select id="getCateCnt" resultType="Integer" parameterType="hashmap">
+		SELECT COUNT(*) AS CNT
+		FROM CATE
+		WHERE DEL = 1
+		<if test="searchText != null and searchText != ''">
+			<choose>
+				<when test="searchGbn eq 0">
+					AND CATE_NM LIKE '%' || #{nm} ||'%'
+				</when>
+			</choose>
+		</if>
+	</select>
+	
+	<select id="getCateList" parameterType="hashmap" resultType="hashmap">
+		SELECT C.CATE_NO, C.CATE_NM
+		FROM(SELECT CATE_NO, CATE_NM , ROW_NUMBER() OVER(ORDER BY CATE_NO DESC) AS RNUM
+		FROM CATE 
+		WHERE DEL = 1
+		<if test="searchText != null and searchText != ''">
+			<choose>
+				<when test="searchGbn eq 0">
+				AND CATE_NM LIKE '%' || #{nm} ||'%'
+				</when>
+			</choose>
+		</if>)C
+		WHERE C.RNUM BETWEEN #{start} AND #{end}
+	</select>
+	
+	<select id="getCateAllList" resultType="hashMap">
+	<!-- testa/T/list.jsp에서 가져오려고 ,getCateList 사용안하는 이유는  STARTM END가 있으면 전체 조회가 힘들어서)-->
+		SELECT CATE_NO, CATE_NM
+		FROM CATE
+		WHERE DEL = 1
+	</select>
+	
+	<select id="getCate" resultType="String" parameterType="hashmap">
+		<!-- 이름 취득용 쿼리 -->
+		SELECT CATE_NM
+		FROM CATE
+		WHERE DEL = 1
+		AND CATE_NO = #{cateNo}
+	</select>
+	
+	<insert id="insertCate" parameterType="hashmap">
+		INSERT INTO CATE(CATE_NO, CATE_NM)
+		VALUES(CATE_SEQ.NEXTVAL, #{nm})
+	</insert>
+	
+	<update id="updateCate" parameterType="hashmap">
+		UPDATE CATE SET CATE_NM = #{nm}
+		WHERE CATE_NO = #{no} 
+	</update>
+	
+	<update id="delUpCate" parameterType="hashmap">
+		<!-- del 컬럼에 값을 0으로 변경, 그러면 조회시 검색되지 않고, 진짜로 삭제를 안하므로 데이터를 보관할 수 있다. -->
+		UPDATE CATE SET DEL = 0
+		WHERE CATE_NO = #{no} 
+	</update>
+</mapper>

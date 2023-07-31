@@ -1,0 +1,13 @@
+@CHARSET "UTF-8";
+.ui-datepicker {
+	font-size: 12px;
+	width: 160px;
+} /*달력크기,글자폰트*/
+.ui-datepicker select.ui-datepicker-month {
+	width: 30%;
+	font-size: 11px;
+} /*달력크기,글자폰트*/
+.ui-datepicker select.ui-datepicker-year {
+	width: 40%;
+	font-size: 11px;
+} /*달력크기,글자폰트*/

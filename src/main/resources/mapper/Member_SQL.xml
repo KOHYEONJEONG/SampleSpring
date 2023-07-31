@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mem">
+
+	<select id="memberList" resultType="hashmap"
+		parameterType="hashmap">
+		SELECT M.MEM_NO,M.MEM_ID, M.MEM_NM, M.REG_DT
+		FROM(
+			SELECT MEM_NO, MEM_ID, MEM_NM,
+						CASE WHEN TO_CHAR(REG_DT, 'YY.MM.DD') = TO_CHAR(SYSDATE, 'YY.MM.DD')
+							THEN TO_CHAR(REG_DT, 'HH24:MI')
+							ELSE TO_CHAR(REG_DT,'YY.MM.DD')
+						END AS REG_DT,
+					ROW_NUMBER() OVER(ORDER BY REG_DT DESC, MEM_NO DESC) AS RNK
+			FROM MEM
+			WHERE DEL = 1
+			<if test="searchTxt != null and searchTxt !=''">
+				<choose>
+					<when test="searchGbn == 0">
+						AND MEM_ID LIKE '%' || #{searchTxt} || '%'
+					</when>
+					
+					<when test="searchGbn == 1">
+						AND MEM_NM LIKE '%' || #{searchTxt} || '%'
+					</when>
+				</choose>
+			</if>
+		)M
+		WHERE M.RNK BETWEEN #{start} AND #{end}
+	</select>
+
+	<select id="getMember" resultType="hashmap"
+		parameterType="hashmap">
+		SELECT MEM_NO, MEM_ID, MEM_NM, MEM_PW, TO_CHAR(MEM_BIRTH, 'YYYY-MM-DD') AS MEM_BIRTH,
+						CASE WHEN TO_CHAR(REG_DT, 'YY.MM.DD') = TO_CHAR(SYSDATE, 'YY.MM.DD')
+						THEN TO_CHAR(REG_DT, 'HH24:MI')
+						ELSE TO_CHAR(REG_DT,'YY.MM.DD')
+						END AS REG_DT
+		FROM MEM
+		WHERE DEL = 1
+		AND MEM_NO = #{no}
+	</select>
+
+	<select id="getMemberCnt" parameterType="hashmap" resultType="Integer">
+		SELECT COUNT(*) AS CNT
+		FROM MEM
+		WHERE 1=1 <!-- 고정조건을 만들 때 위치를 잡아주려고, 그냥 모두 다 조회해라~ -->
+		<if test="searchTxt != null and searchTxt !=''">
+			<choose>
+				<when test="searchGbn == 0">
+					AND MEM_ID LIKE '%' || #{searchTxt} || '%'
+				</when>
+				
+				<when test="searchGbn == 1">
+					AND MEM_NM LIKE '%' || #{searchTxt} || '%'
+				</when>
+			</choose>
+		</if>
+	</select>
+
+	<insert id="memberInsert" parameterType="hashmap">
+		INSERT INTO MEM(MEM_NO, MEM_ID, MEM_PW, MEM_NM, MEM_BIRTH, REG_DT)
+		VALUES(MEM_SEQ.NEXTVAL,#{id}, #{pw}, #{nm}, #{bd}, sysdate)
+	</insert>
+	
+	<update id="updateMember" parameterType="hashmap">
+		UPDATE MEM SET 
+			<if test="pw != null and pw != ''">
+				MEM_PW = #{pw},
+			</if>
+				MEM_NM = #{nm},
+				MEM_BIRTH = #{bd}
+		WHERE MEM_NO = #{no}
+	</update>
+
+	<update id="deleteMember" parameterType="hashmap">
+		UPDATE MEM
+		SET DEL = 0
+		WHERE MEM_NO = #{no}
+	</update>
+</mapper>

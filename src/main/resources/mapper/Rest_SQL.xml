@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="rest">
+	<select id="getList" resultType="String">
+		SELECT RTXT
+		FROM REST
+		ORDER BY RDT ASC
+	</select>
+	
+	<select id="getTop" resultType="String">
+		SELECT RTXT
+		FROM (SELECT RTXT, ROW_NUMBER() OVER(ORDER BY RDT ASC) AS RNUM
+			  FROM REST) R
+		WHERE R.RNUM = 1
+	</select>
+	
+	<select id="getBottom" resultType="String">
+		SELECT RTXT
+		FROM (SELECT RTXT, ROW_NUMBER() OVER(ORDER BY RDT DESC) AS RNUM
+			  FROM REST) R
+		WHERE R.RNUM = 1
+	</select>
+	
+	<insert id="putOne">
+		INSERT INTO REST (RTXT)
+		VALUES ('TEST' || (SELECT COUNT(*) + 1 FROM REST))
+	</insert>
+	
+	<update id="patchOne">
+		UPDATE REST SET RTXT = RTXT || '수정' 
+		WHERE RTXT = (SELECT RTXT
+					  FROM (SELECT RTXT, ROW_NUMBER() OVER(ORDER BY RDT ASC) AS RNUM
+					   	    FROM REST) R
+					  WHERE R.RNUM = 1)
+	</update>
+	
+	<delete id="deleteOne">
+		DELETE FROM REST
+		WHERE RTXT = (SELECT RTXT
+					  FROM (SELECT RTXT, ROW_NUMBER() OVER(ORDER BY RDT ASC) AS RNUM
+					   	    FROM REST) R
+					  WHERE R.RNUM = 1)
+	</delete>
+</mapper>
